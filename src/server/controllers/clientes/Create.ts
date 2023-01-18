@@ -1,20 +1,16 @@
 import { Request, Response } from 'express';
-import * as yup from 'yup';
-import { validation } from '../../shared/middleware';
 import { StatusCodes } from 'http-status-codes';
+import * as yup from 'yup';
+import { ICliente } from '../../database/models';
+import { validation } from '../../shared/middleware';
 
 
-interface ICliente {
-  cpf: string;
-}
-
-// interface IFilter {
-//   filter?: string;
-// }
+interface IBodyProps extends Omit<ICliente, 'id'> { }
 
 export const createValidation = validation((getSchema) => ({
-  body: getSchema<ICliente>(yup.object().shape({
+  body: getSchema<IBodyProps>(yup.object().shape({
     cpf: yup.string().required().length(11),
+    nome: yup.string().required(),
   })),
 }));
 
@@ -22,5 +18,5 @@ export const createValidation = validation((getSchema) => ({
 export const create = async (req: Request<{}, {}, ICliente>, res: Response) => {
   console.log(req.body);
 
-  return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Não implementado!');
+  return res.status(StatusCodes.CREATED).json(1);
 };
