@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import * as yup from 'yup';
+
+import { ClientesProvider } from '../../database/providers/clientes';
+import { validation } from '../../shared/middleware';
 import { ICliente } from '../../database/models';
 
-import { validation } from '../../shared/middleware';
+
 interface IParamProps {
   id?: number;
 }
@@ -11,22 +14,31 @@ interface IParamProps {
 interface IBodyProps extends Omit<ICliente, 'id'> { }
 
 export const updateByIdValidation = validation(getSchema => ({
-  body: getSchema<IBodyProps>(yup.object().shape({
-    cpf: yup.string().required().length(11),
-    nome: yup.string().required(),    
-  })),
+  // body: getSchema<IBodyProps>(yup.object().shape({
+  //   nome: yup.string().required().min(3).max(150),
+  // })),
   params: getSchema<IParamProps>(yup.object().shape({
     id: yup.number().integer().required().moreThan(0),
   })),
 }));
 
 export const updateById = async (req: Request<IParamProps, {}, IBodyProps>, res: Response) => {
+  if (!req.params.id) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      errors: {
+        default: 'O parâmetro "id" precisa ser informado.'
+      }
+    });
+  }
 
-  if (Number(req.params.id) === 99999) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    errors: {
-      default: 'Registro não encontrado'
-    }
-  });
+  const result = await ClientesProvider.updateById(req.params.id, req.body);
+  if (result instanceof Error) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      errors: {
+        default: result.message
+      }
+    });
+  }
 
-  return res.status(StatusCodes.NO_CONTENT).send();
+  return res.status(StatusCodes.NO_CONTENT).json(result);
 };

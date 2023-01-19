@@ -9,7 +9,7 @@ describe('Clientes - GetAll', () => {
 
     const res1 = await testServer
       .post('/clientes')
-      .send({ cpf: '12345678901' });
+      .send({ cpf: '12345678901',nome: 'Cliente numero 02'});
 
     expect(res1.statusCode).toEqual(StatusCodes.CREATED);
 
